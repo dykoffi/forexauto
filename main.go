@@ -7,6 +7,7 @@ import (
 
 	"github.com/dykoffi/forexauto/src/config"
 	"github.com/dykoffi/forexauto/src/data"
+	"github.com/dykoffi/forexauto/src/logger"
 )
 
 func main() {
@@ -15,7 +16,10 @@ func main() {
 	loopInterval, _ := strconv.ParseInt(configService.GetOrDefault("LOOP_INTERVAL", "9"), 10, 64)
 
 	for {
+		// panic("demain est dimanche")
 		fmt.Printf("Test each %d minutes okay \n", loopInterval)
+		logger.New().Error("Panic")
+
 		FullForexQuoteData, err := dataService.GetFullForexQuote(data.EURUSD)
 
 		if err != nil {

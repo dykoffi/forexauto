@@ -56,6 +56,8 @@ func (ds *DataService) GetFullForexQuote(symbol string) (*[]FullForexQuote, erro
 
 	defer res.Body.Close()
 
+	logger.New().Debug("Debug")
+
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println("Erreur lors de la lecture de la réponse :", err)
