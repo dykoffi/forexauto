@@ -7,7 +7,6 @@ tmp_dir = "tmp"
 testdata_dir = "testdata"
 
 [build]
-  pre_cmd = ["swag init -o public -ot json"]
   cmd = ""
   post_cmd = [""]
   args_bin = []

@@ -56,10 +56,9 @@ func (ds *DataService) GetFullForexQuote(symbol string) (*[]FullForexQuote, erro
 
 	defer res.Body.Close()
 
-	logger.New().Debug("Debug")
-
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
+		ds.logger.Error(err.Error())
 		fmt.Println("Erreur lors de la lecture de la réponse :", err)
 		return nil, err
 	}
@@ -67,6 +66,7 @@ func (ds *DataService) GetFullForexQuote(symbol string) (*[]FullForexQuote, erro
 	var dataBody []FullForexQuote
 
 	if err := json.Unmarshal(body, &dataBody); err != nil {
+		ds.logger.Error(err.Error())
 		return nil, err
 	}
 

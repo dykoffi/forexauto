@@ -55,15 +55,14 @@ func (ls *LoggerService) writeInFile(message string, level string) {
 		return
 	}
 
-	pc, _, _, _ := runtime.Caller(2)
+	pc, fileName, line, _ := runtime.Caller(2)
 
-	caller2, line := runtime.FuncForPC(pc).FileLine(pc)
-	service := runtime.FuncForPC(pc).Name()
+	caller2 := runtime.FuncForPC(pc).Name()
 	dateTime := time.Now().Format("02-01-2006 15:04:05")
 
 	user := os.Getgid()
 
-	logFormat := fmt.Sprintf("[%s] %s %s [%d] - %s (%d) {%s}\n", dateTime, level, message, user, caller2, line, service)
+	logFormat := fmt.Sprintf("[%s] %s %s [%d] - %s (%d) {%s}\n", dateTime, level, message, user, fileName, line, caller2)
 
 	date := time.Now().Format("02-01-2006")
 	filePath := fmt.Sprintf("%s/%s.log", ls.folder, date)
