@@ -1,0 +1,61 @@
+PUT http://admin:0000@localhost:5984/testdb HTTP/1.1
+Accept: application/json
+###
+
+GET http://admin:0000@localhost:5984/testdb/_design_docs HTTP/1.1
+
+###
+
+POST http://admin:0000@localhost:5984/forexauto_write HTTP/1.1
+Content-Type: application/json
+
+{
+  "symbol": "EURUSD",
+  "historical": [
+    {
+      "date": "2024-11-15",
+      "open": 1.0533,
+      "high": 1.0582,
+      "low": 1.0523,
+      "close": 1.05665,
+      "adjClose": 1.05665,
+      "volume": 65314,
+      "unadjustedVolume": 65314,
+      "change": 0.00335,
+      "changePercent": 0.31804804,
+      "vwap": 1.06,
+      "label": "November 15, 24",
+      "changeOverTime": 0.0031804804
+    },
+    {
+      "date": "2024-11-14",
+      "open": 1.05622,
+      "high": 1.05822,
+      "low": 1.04958,
+      "close": 1.05193,
+      "adjClose": 1.05193,
+      "volume": 285143,
+      "unadjustedVolume": 285143,
+      "change": -0.00429,
+      "changePercent": -0.40617,
+      "vwap": 1.05399,
+      "label": "November 14, 24",
+      "changeOverTime": -0.0040617
+    },
+    {
+      "date": "2024-11-13",
+      "open": 1.06228,
+      "high": 1.06534,
+      "low": 1.05555,
+      "close": 1.05622,
+      "adjClose": 1.05622,
+      "volume": 283517,
+      "unadjustedVolume": 283517,
+      "change": -0.00606,
+      "changePercent": -0.57047,
+      "vwap": 1.05985,
+      "label": "November 13, 24",
+      "changeOverTime": -0.0057047
+    }
+  ]
+}

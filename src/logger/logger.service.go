@@ -51,7 +51,7 @@ func New() *LoggerService {
 
 func (ls *LoggerService) writeInFile(message string, level string) {
 
-	if Levels[level] > ls.level {
+	if levelVal, exist := Levels[level]; !exist || levelVal > ls.level {
 		return
 	}
 
@@ -93,7 +93,7 @@ func (ls *LoggerService) Warning(message string) {
 }
 
 func (ls *LoggerService) Info(message string) {
-	ls.writeInFile(message, "Info")
+	ls.writeInFile(message, "I")
 }
 
 func (ls *LoggerService) Debug(message string) {

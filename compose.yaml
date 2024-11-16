@@ -8,12 +8,34 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
-  server:
-    build:
-      context: .
-      target: final
+  redis:
+    image: redis:6.2.6
+    container_name: go-redis
+    restart: unless-stopped
     ports:
-      - 8080:8080
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+  db:
+    image: couchdb:3.4.2
+    container_name: couchdb-db
+    ports:
+      - 5984:5984
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=0000
+    volumes:
+      - db-data:/opt/couchdb/data
+  # server:
+  #   build:
+  #     context: .
+  #     target: final
+  #   ports:
+  #     - 8080:8080
+
+volumes:
+  redis-data:
+  db-data:
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
