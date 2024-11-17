@@ -14,15 +14,17 @@ import (
 
 type DataInterface interface {
 	New() *DataService
-	GetFullForexQuote() *FullForexQuote
-	GetIntraDayForex() *IntraDayForex
-	GetDailyForex() *HistoricalDailyForex
+	GetFullForexQuote() (*[]FullForexQuote, error)
+	GetIntraDayForex() (*[]IntraDayForex, error)
+	GetHistoricalDailyForex() (*[]HistoricalForex, error)
 }
 
 type DataService struct {
-	host   string
-	apiKey string
-	logger *logger.LoggerService
+	host      string
+	apiKey    string
+	symbol    string
+	timeframe string
+	logger    *logger.LoggerService
 }
 
 var IDataService DataService
@@ -37,17 +39,19 @@ func New() *DataService {
 	logger := logger.New()
 
 	IDataService = DataService{
-		apiKey: config.GetOrThrow("FOREX_API_KEY"),
-		host:   config.GetOrThrow("FOREX_BASE_URL"),
-		logger: logger,
+		apiKey:    config.GetOrThrow("FOREX_API_KEY"),
+		host:      config.GetOrThrow("FOREX_BASE_URL"),
+		symbol:    config.GetOrThrow("FOREX_SYMBOL"),
+		timeframe: config.GetOrThrow("FOREX_TIMEFRAME"),
+		logger:    logger,
 	}
 
 	return &IDataService
 }
 
-func (ds *DataService) GetFullForexQuote(symbol string) (*[]FullForexQuote, error) {
+func (ds *DataService) GetFullForexQuote() (*[]FullForexQuote, error) {
 
-	path := fmt.Sprintf("/quote/%s", symbol)
+	path := fmt.Sprintf("/quote/%s", ds.symbol)
 	finalUrl := fmt.Sprintf("%s/%s?apikey=%s", ds.host, path, ds.apiKey)
 	res, err := http.Get(finalUrl)
 
@@ -72,16 +76,53 @@ func (ds *DataService) GetFullForexQuote(symbol string) (*[]FullForexQuote, erro
 		return nil, err
 	}
 
-	return &dataBody, nil
+	fullForexQuoteData := lop.Map(dataBody, func(item FullForexQuote, index int) FullForexQuote {
+		item.ID = fmt.Sprintf("%d", item.Timestamp)
+		return item
+	})
+
+	return &fullForexQuoteData, nil
 }
 
-func (ds *DataService) GetIntraDayForex() *IntraDayForex {
-	return &IntraDayForex{}
+func (ds *DataService) GetIntraDayForex() (*[]IntraDayForex, error) {
+	path := fmt.Sprintf("/historical-chart/%s/%s", ds.timeframe, ds.symbol)
+	finalUrl := fmt.Sprintf("%s/%s?apikey=%s", ds.host, path, ds.apiKey)
+	res, err := http.Get(finalUrl)
+
+	if err != nil {
+		ds.logger.Error(err.Error())
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		ds.logger.Error(err.Error())
+		fmt.Println("Erreur lors de la lecture de la réponse :", err)
+		return nil, err
+	}
+
+	var dataBody []IntraDayForex
+
+	if err := json.Unmarshal(body, &dataBody); err != nil {
+		ds.logger.Error(err.Error())
+		return nil, err
+	}
+
+	intraDayForexData := lop.Map(dataBody, func(item IntraDayForex, index int) IntraDayForex {
+		tps, _ := time.Parse("2006-01-02 15:04:05", item.Date)
+		item.ID = fmt.Sprintf("%d", tps.Unix())
+		item.Timestamp = tps.Unix()
+		return item
+	})
+
+	return &intraDayForexData, nil
 }
 
-func (ds *DataService) GetHistoricalDailyForex(symbol string) (*[]HistoricalForex, error) {
+func (ds *DataService) GetHistoricalDailyForex() (*[]HistoricalForex, error) {
 
-	path := fmt.Sprintf("/historical-price-full/%s", symbol)
+	path := fmt.Sprintf("/historical-price-full/%s", ds.symbol)
 	finalUrl := fmt.Sprintf("%s/%s?apikey=%s", ds.host, path, ds.apiKey)
 	res, err := http.Get(finalUrl)
 
@@ -116,3 +157,7 @@ func (ds *DataService) GetHistoricalDailyForex(symbol string) (*[]HistoricalFore
 
 	return &historicalData, nil
 }
+
+// func (ds *DataService) TransformToReader(data any) (io.Reader, error) {
+// 	return transformToReader(data)
+// }

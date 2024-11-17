@@ -1,6 +1,7 @@
 package data
 
 type FullForexQuote struct {
+	ID                   string  `json:"_id"`
 	Symbol               string  `json:"symbol"`
 	Name                 string  `json:"name"`
 	Price                float32 `json:"price"`
@@ -23,6 +24,7 @@ type FullForexQuote struct {
 }
 
 type IntraDayForex struct {
+	ID        string  `json:"_id"`
 	Date      string  `json:"date"`
 	Open      float32 `json:"open"`
 	Low       float32 `json:"low"`

@@ -1,8 +1,12 @@
-PUT http://admin:0000@localhost:5984/testdb HTTP/1.1
+PUT http://admin:0000@localhost:5984/historicalforex HTTP/1.1
 Accept: application/json
 ###
 
 GET http://admin:0000@localhost:5984/testdb/_design_docs HTTP/1.1
+
+###
+
+GET http://admin:0000@localhost:5984/testdb/_security HTTP/1.1
 
 ###
 

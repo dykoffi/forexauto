@@ -37,7 +37,7 @@ func New() *LoggerService {
 	level, exist := Levels[config.GetOrDefault("LOG_LEVEL", "Debug")]
 
 	if !exist {
-		level = Debug
+		level = DEBUG
 	}
 
 	ILoggerService = LoggerService{

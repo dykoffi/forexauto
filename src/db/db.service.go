@@ -10,16 +10,15 @@ import (
 )
 
 type DBInterface interface {
+	New() *DBService
 }
 
 type DBService struct {
-	host          string
-	username      string
-	password      string
-	databaseRead  string
-	databaseWrite string
-	logger        *logger.LoggerService
-	client        *http.Client
+	host     string
+	username string
+	password string
+	logger   *logger.LoggerService
+	client   *http.Client
 }
 
 var IDBService DBService
@@ -33,35 +32,44 @@ func New() *DBService {
 	logger := logger.New()
 
 	IDBService = DBService{
-		host:          config.GetOrThrow("COUCHDB_HOST"),
-		username:      config.GetOrThrow("COUCHDB_USER"),
-		password:      config.GetOrThrow("COUCHDB_PWD"),
-		databaseRead:  config.GetOrThrow("COUCHDB_DB_READ"),
-		databaseWrite: config.GetOrThrow("COUCHDB_DB_WRITE"),
-		logger:        logger,
-		client:        &http.Client{},
+		host:     config.GetOrThrow("COUCHDB_HOST"),
+		username: config.GetOrThrow("COUCHDB_USER"),
+		password: config.GetOrThrow("COUCHDB_PWD"),
+		logger:   logger,
+		client:   &http.Client{},
 	}
 
 	return &IDBService
 
 }
 
-func (dbs *DBService) AddData(data io.Reader) {
-	fullPath := fmt.Sprintf("%s/%s/_bulk_docs", dbs.host, dbs.databaseWrite)
-	req, _ := http.NewRequest(http.MethodPost, fullPath, data)
+func (dbs *DBService) Insert(database string, dataReader *io.Reader, bulk bool) error {
+
+	var fullPath string
+
+	if bulk {
+		fullPath = fmt.Sprintf("%s/%s/_bulk_docs", dbs.host, database)
+	} else {
+		fullPath = fmt.Sprintf("%s/%s", dbs.host, database)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, fullPath, *dataReader)
+
+	if err != nil {
+		return err
+	}
 
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Length", "application/json")
+	// req.Header.Add("Content-Length", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 
 	req.SetBasicAuth(dbs.username, dbs.password)
 
-	_, err := dbs.client.Do(req)
-
-	if err != nil {
-		panic(err)
+	if _, err := dbs.client.Do(req); err != nil {
+		return err
 	}
 
 	req.Body.Close()
 
+	return nil
 }
