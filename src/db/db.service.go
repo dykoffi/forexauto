@@ -21,16 +21,16 @@ type DBService struct {
 	client   *http.Client
 }
 
-var IDBService DBService
+var iDBService DBService
 
 func New() *DBService {
-	if (IDBService != DBService{}) {
-		return &IDBService
+	if (iDBService != DBService{}) {
+		return &iDBService
 	}
 
 	config := config.New()
 
-	IDBService = DBService{
+	iDBService = DBService{
 		host:     config.GetOrThrow("COUCHDB_HOST"),
 		username: config.GetOrThrow("COUCHDB_USER"),
 		password: config.GetOrThrow("COUCHDB_PWD"),
@@ -38,7 +38,7 @@ func New() *DBService {
 		client:   &http.Client{},
 	}
 
-	return &IDBService
+	return &iDBService
 
 }
 

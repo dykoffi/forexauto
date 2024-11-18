@@ -14,12 +14,12 @@ type CacheService struct {
 }
 
 // The unique instance for CacheService (Singleton pattern)
-var ICacheService CacheService
+var iCacheService CacheService
 
 func New() *CacheService {
 
-	if (ICacheService != CacheService{}) {
-		return &ICacheService
+	if (iCacheService != CacheService{}) {
+		return &iCacheService
 	}
 
 	config := config.New()
@@ -33,9 +33,9 @@ func New() *CacheService {
 		panic(err)
 	}
 
-	ICacheService = CacheService{cs: client}
+	iCacheService = CacheService{cs: client}
 
-	return &ICacheService
+	return &iCacheService
 
 }
 

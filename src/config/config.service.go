@@ -16,23 +16,23 @@ type ConfigService struct {
 }
 
 // The unique instance for ConfigService (Singleton pattern)
-var IConfigService ConfigService
+var iConfigService ConfigService
 
 func New() *ConfigService {
 
-	if (IConfigService != ConfigService{}) {
-		return &IConfigService
+	if (iConfigService != ConfigService{}) {
+		return &iConfigService
 	}
 
-	IConfigService = ConfigService{
+	iConfigService = ConfigService{
 		config: viper.New(),
 	}
 
-	IConfigService.config.AutomaticEnv()
-	IConfigService.config.SetConfigFile(".env")
-	IConfigService.config.ReadInConfig()
+	iConfigService.config.AutomaticEnv()
+	iConfigService.config.SetConfigFile(".env")
+	iConfigService.config.ReadInConfig()
 
-	return &IConfigService
+	return &iConfigService
 
 }
 

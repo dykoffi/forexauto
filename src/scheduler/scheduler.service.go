@@ -16,19 +16,19 @@ type ScheduleService struct {
 	logger *logger.LoggerService
 }
 
-var IScheduleService ScheduleService
+var iScheduleService ScheduleService
 
 func New() *ScheduleService {
-	if (IScheduleService != ScheduleService{}) {
-		return &IScheduleService
+	if (iScheduleService != ScheduleService{}) {
+		return &iScheduleService
 	}
 
-	IScheduleService := ScheduleService{
+	iScheduleService := ScheduleService{
 		cron:   cron.New(),
 		logger: logger.New(),
 	}
 
-	return &IScheduleService
+	return &iScheduleService
 }
 
 func (ss *ScheduleService) RunCrons() {

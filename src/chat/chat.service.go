@@ -16,12 +16,12 @@ type ChatService struct {
 	client *chat.Service
 }
 
-var IChatService ChatService
+var iChatService ChatService
 
 func New() *ChatService {
 
-	if (IChatService != ChatService{}) {
-		return &IChatService
+	if (iChatService != ChatService{}) {
+		return &iChatService
 	}
 
 	client, err := chat.NewService(context.Background(), option.WithCredentialsFile(".credentials.json"))
@@ -30,11 +30,11 @@ func New() *ChatService {
 		log.Fatalln(err)
 	}
 
-	IChatService = ChatService{
+	iChatService = ChatService{
 		client: client,
 	}
 
-	return &IChatService
+	return &iChatService
 }
 
 func (cs *ChatService) SendMessage() {

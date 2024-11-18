@@ -24,12 +24,12 @@ type LoggerService struct {
 	folder string
 }
 
-var ILoggerService LoggerService
+var iLoggerService LoggerService
 
 func New() *LoggerService {
 
-	if (ILoggerService != LoggerService{}) {
-		return &ILoggerService
+	if (iLoggerService != LoggerService{}) {
+		return &iLoggerService
 	}
 
 	config := config.New()
@@ -40,12 +40,12 @@ func New() *LoggerService {
 		level = DEBUG
 	}
 
-	ILoggerService = LoggerService{
+	iLoggerService = LoggerService{
 		level:  level,
 		folder: config.GetOrDefault("LOG_FOLDER", "logs"),
 	}
 
-	return &ILoggerService
+	return &iLoggerService
 
 }
 
