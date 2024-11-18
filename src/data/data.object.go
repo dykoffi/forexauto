@@ -4,8 +4,6 @@ const (
 	EURUSD = "EURUSD"
 )
 
-// type Symbols struct
-
 type FullForexQuoteBulkData struct {
 	Docs *[]FullForexQuote `json:"docs"`
 }

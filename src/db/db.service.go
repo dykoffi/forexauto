@@ -29,13 +29,12 @@ func New() *DBService {
 	}
 
 	config := config.New()
-	logger := logger.New()
 
 	IDBService = DBService{
 		host:     config.GetOrThrow("COUCHDB_HOST"),
 		username: config.GetOrThrow("COUCHDB_USER"),
 		password: config.GetOrThrow("COUCHDB_PWD"),
-		logger:   logger,
+		logger:   logger.New(),
 		client:   &http.Client{},
 	}
 

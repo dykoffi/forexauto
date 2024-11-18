@@ -1,6 +1,10 @@
 package scheduler
 
-import "time"
+import (
+	"github.com/dykoffi/forexauto/src/logger"
+	"github.com/dykoffi/forexauto/src/process"
+	"github.com/robfig/cron/v3"
+)
 
 type SchedulerInterface interface {
 	New() *ScheduleService
@@ -8,9 +12,8 @@ type SchedulerInterface interface {
 }
 
 type ScheduleService struct {
-	openDays  string
-	openHours string
-	beginTime string
+	cron   *cron.Cron
+	logger *logger.LoggerService
 }
 
 var IScheduleService ScheduleService
@@ -20,12 +23,16 @@ func New() *ScheduleService {
 		return &IScheduleService
 	}
 
-	return &ScheduleService{}
+	IScheduleService := ScheduleService{
+		cron:   cron.New(),
+		logger: logger.New(),
+	}
+
+	return &IScheduleService
 }
 
-func (ss *ScheduleService) Cron(task func() error, duration time.Duration) {
-	for {
-		task()
-		time.Sleep(duration)
-	}
+func (ss *ScheduleService) RunCrons() {
+	ss.logger.Info("Running crons ...")
+	ss.cron.AddFunc("* 23 * * 2-7", process.New().CollectIntraDayForex)
+	ss.cron.Start()
 }

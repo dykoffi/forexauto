@@ -36,14 +36,13 @@ func New() *DataService {
 	}
 
 	config := config.New()
-	logger := logger.New()
 
 	IDataService = DataService{
 		apiKey:    config.GetOrThrow("FOREX_API_KEY"),
 		host:      config.GetOrThrow("FOREX_BASE_URL"),
 		symbol:    config.GetOrThrow("FOREX_SYMBOL"),
 		timeframe: config.GetOrThrow("FOREX_TIMEFRAME"),
-		logger:    logger,
+		logger:    logger.New(),
 	}
 
 	return &IDataService
@@ -84,13 +83,12 @@ func (ds *DataService) GetFullForexQuote() (*[]FullForexQuote, error) {
 	return &fullForexQuoteData, nil
 }
 
-func (ds *DataService) GetIntraDayForex() (*[]IntraDayForex, error) {
+func (ds *DataService) GetIntraDayForex(from string, to string) (*[]IntraDayForex, error) {
 	path := fmt.Sprintf("/historical-chart/%s/%s", ds.timeframe, ds.symbol)
-	finalUrl := fmt.Sprintf("%s/%s?apikey=%s", ds.host, path, ds.apiKey)
+	finalUrl := fmt.Sprintf("%s/%s?from=%s&to=%s&apikey=%s", ds.host, path, from, to, ds.apiKey)
 	res, err := http.Get(finalUrl)
 
 	if err != nil {
-		ds.logger.Error(err.Error())
 		return nil, err
 	}
 
@@ -98,15 +96,12 @@ func (ds *DataService) GetIntraDayForex() (*[]IntraDayForex, error) {
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		ds.logger.Error(err.Error())
-		fmt.Println("Erreur lors de la lecture de la réponse :", err)
 		return nil, err
 	}
 
 	var dataBody []IntraDayForex
 
 	if err := json.Unmarshal(body, &dataBody); err != nil {
-		ds.logger.Error(err.Error())
 		return nil, err
 	}
 
@@ -157,7 +152,3 @@ func (ds *DataService) GetHistoricalDailyForex() (*[]HistoricalForex, error) {
 
 	return &historicalData, nil
 }
-
-// func (ds *DataService) TransformToReader(data any) (io.Reader, error) {
-// 	return transformToReader(data)
-// }

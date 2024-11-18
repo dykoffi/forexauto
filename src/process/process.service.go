@@ -1,6 +1,8 @@
 package process
 
 import (
+	"time"
+
 	"github.com/dykoffi/forexauto/src/data"
 	"github.com/dykoffi/forexauto/src/db"
 	"github.com/dykoffi/forexauto/src/logger"
@@ -20,34 +22,32 @@ type ProcessService struct {
 	data              *data.DataService
 }
 
-var IProcessService ProcessService
+var iProcessService ProcessService
 
 func New() *ProcessService {
-	if (IProcessService != ProcessService{}) {
-		return &IProcessService
+	if (iProcessService != ProcessService{}) {
+		return &iProcessService
 	}
 
-	loggerS := logger.New()
-	dataS := data.New()
-
-	IProcessService := ProcessService{
-		logger:            loggerS,
-		data:              dataS,
+	iProcessService := ProcessService{
+		logger:            logger.New(),
+		data:              data.New(),
 		fullForexQuoteDB:  "fullforexquote",
 		intraDayForexDB:   "intradayforex",
 		historicalForexDB: "historicalforex",
 	}
 
-	return &IProcessService
+	return &iProcessService
 
 }
 
 func (ps *ProcessService) CollectFullForexQuote() {
+	ps.logger.Info("Retrieving FullForexQuote ...")
 	fullForexQuoteData, err := ps.data.GetFullForexQuote()
 
 	if err != nil {
 		ps.logger.Error(err.Error())
-		panic(err)
+		return
 	}
 
 	reqData := data.FullForexQuoteBulkData{
@@ -58,20 +58,27 @@ func (ps *ProcessService) CollectFullForexQuote() {
 
 	if err != nil {
 		ps.logger.Error(err.Error())
-		panic(err)
+		return
 	}
 
 	if err := db.New().Insert(ps.fullForexQuoteDB, &ioReader, true); err != nil {
+		ps.logger.Error(err.Error())
 		return
 	}
+
+	ps.logger.Info("FullForexQuote saved")
 }
 
 func (ps *ProcessService) CollectIntraDayForex() {
-	intraDayForex, err := ps.data.GetIntraDayForex()
+	ps.logger.Info("Retrieving IntraDayForex ...")
+
+	yesterday := time.Now().Add(-24 * time.Hour).Format("2006-01-02")
+
+	intraDayForex, err := ps.data.GetIntraDayForex(yesterday, yesterday)
 
 	if err != nil {
 		ps.logger.Error(err.Error())
-		panic(err)
+		return
 	}
 
 	reqData := data.IntraDayForexBulkData{
@@ -82,10 +89,13 @@ func (ps *ProcessService) CollectIntraDayForex() {
 
 	if err != nil {
 		ps.logger.Error(err.Error())
-		panic(err)
+		return
 	}
 
 	if err := db.New().Insert(ps.intraDayForexDB, &ioReader, true); err != nil {
+		ps.logger.Error(err.Error())
 		return
 	}
+
+	ps.logger.Info("IntraDayForex saved")
 }
