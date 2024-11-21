@@ -1,6 +1,8 @@
 package config
 
 import (
+	"sync"
+
 	"github.com/spf13/viper"
 )
 
@@ -8,7 +10,7 @@ type ConfigInterface interface {
 	New() *ConfigService
 	Get(key string) string
 	GetorThrow(key string) string
-	GetOrDefault(key string, defaultValue string)
+	GetOrDefault(key string, defaultValue string) string
 }
 
 type ConfigService struct {
@@ -16,21 +18,22 @@ type ConfigService struct {
 }
 
 // The unique instance for ConfigService (Singleton pattern)
-var iConfigService ConfigService
+var (
+	iConfigService ConfigService
+	once           sync.Once
+)
 
 func New() *ConfigService {
 
-	if (iConfigService != ConfigService{}) {
-		return &iConfigService
-	}
+	once.Do(func() {
+		iConfigService = ConfigService{
+			config: viper.New(),
+		}
 
-	iConfigService = ConfigService{
-		config: viper.New(),
-	}
-
-	iConfigService.config.AutomaticEnv()
-	iConfigService.config.SetConfigFile(".env")
-	iConfigService.config.ReadInConfig()
+		iConfigService.config.AutomaticEnv()
+		iConfigService.config.SetConfigFile(".env")
+		iConfigService.config.ReadInConfig()
+	})
 
 	return &iConfigService
 

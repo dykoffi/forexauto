@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/dykoffi/forexauto/src/config"
-	"github.com/dykoffi/forexauto/src/logger"
 	lop "github.com/samber/lo/parallel"
 )
 
@@ -24,28 +24,26 @@ type DataService struct {
 	apiKey    string
 	symbol    string
 	timeframe string
-	logger    *logger.LoggerService
+	config    *config.ConfigService
 }
 
-var IDataService DataService
+var (
+	iDataService DataService
+	once         sync.Once
+)
 
-func New() *DataService {
+func New(config *config.ConfigService) *DataService {
 
-	if (IDataService != DataService{}) {
-		return &IDataService
-	}
+	once.Do(func() {
+		iDataService = DataService{
+			apiKey:    config.GetOrThrow("FOREX_API_KEY"),
+			host:      config.GetOrThrow("FOREX_BASE_URL"),
+			symbol:    config.GetOrThrow("FOREX_SYMBOL"),
+			timeframe: config.GetOrThrow("FOREX_TIMEFRAME"),
+		}
+	})
 
-	config := config.New()
-
-	IDataService = DataService{
-		apiKey:    config.GetOrThrow("FOREX_API_KEY"),
-		host:      config.GetOrThrow("FOREX_BASE_URL"),
-		symbol:    config.GetOrThrow("FOREX_SYMBOL"),
-		timeframe: config.GetOrThrow("FOREX_TIMEFRAME"),
-		logger:    logger.New(),
-	}
-
-	return &IDataService
+	return &iDataService
 }
 
 func (ds *DataService) GetFullForexQuote() (*[]FullForexQuote, error) {
@@ -55,7 +53,6 @@ func (ds *DataService) GetFullForexQuote() (*[]FullForexQuote, error) {
 	res, err := http.Get(finalUrl)
 
 	if err != nil {
-		ds.logger.Error(err.Error())
 		return nil, err
 	}
 
@@ -63,7 +60,6 @@ func (ds *DataService) GetFullForexQuote() (*[]FullForexQuote, error) {
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		ds.logger.Error(err.Error())
 		fmt.Println("Erreur lors de la lecture de la réponse :", err)
 		return nil, err
 	}
@@ -71,7 +67,6 @@ func (ds *DataService) GetFullForexQuote() (*[]FullForexQuote, error) {
 	var dataBody []FullForexQuote
 
 	if err := json.Unmarshal(body, &dataBody); err != nil {
-		ds.logger.Error(err.Error())
 		return nil, err
 	}
 
@@ -122,7 +117,6 @@ func (ds *DataService) GetHistoricalDailyForex() (*[]HistoricalForex, error) {
 	res, err := http.Get(finalUrl)
 
 	if err != nil {
-		ds.logger.Error(err.Error())
 		return nil, err
 	}
 
@@ -130,7 +124,6 @@ func (ds *DataService) GetHistoricalDailyForex() (*[]HistoricalForex, error) {
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		ds.logger.Error(err.Error())
 		fmt.Println("Erreur lors de la lecture de la réponse :", err)
 		return nil, err
 	}
@@ -138,7 +131,6 @@ func (ds *DataService) GetHistoricalDailyForex() (*[]HistoricalForex, error) {
 	var dataBody HistoricalDailyForex
 
 	if err := json.Unmarshal(body, &dataBody); err != nil {
-		ds.logger.Error(err.Error())
 		return nil, err
 	}
 

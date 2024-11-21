@@ -1,53 +1,56 @@
 package process
 
 import (
+	"sync"
 	"time"
 
+	"github.com/dykoffi/forexauto/src/config"
 	"github.com/dykoffi/forexauto/src/data"
 	"github.com/dykoffi/forexauto/src/db"
-	"github.com/dykoffi/forexauto/src/logger"
 )
 
 type ProcessInterface interface {
-	CollectFullForexQuote()
-	CollectIntraDayForex()
-	CollectHistoricalForex()
+	New(config *config.ConfigService, data *data.DataService, db *db.DBService) *ProcessService
+	CollectFullForexQuote() error
+	CollectIntraDayForex() error
+	CollectHistoricalForex() error
 }
 
 type ProcessService struct {
 	fullForexQuoteDB  string
 	intraDayForexDB   string
 	historicalForexDB string
-	logger            *logger.LoggerService
+	config            *config.ConfigService
 	data              *data.DataService
+	db                *db.DBService
 }
 
-var iProcessService ProcessService
+var (
+	iProcessService ProcessService
+	once            sync.Once
+)
 
-func New() *ProcessService {
-	if (iProcessService != ProcessService{}) {
-		return &iProcessService
-	}
-
-	iProcessService := ProcessService{
-		logger:            logger.New(),
-		data:              data.New(),
-		fullForexQuoteDB:  "fullforexquote",
-		intraDayForexDB:   "intradayforex",
-		historicalForexDB: "historicalforex",
-	}
+func New(config *config.ConfigService, data *data.DataService, db *db.DBService) *ProcessService {
+	once.Do(func() {
+		iProcessService = ProcessService{
+			data:              data,
+			db:                db,
+			config:            config,
+			fullForexQuoteDB:  "fullforexquote",
+			intraDayForexDB:   "intradayforex",
+			historicalForexDB: "historicalforex",
+		}
+	})
 
 	return &iProcessService
 
 }
 
-func (ps *ProcessService) CollectFullForexQuote() {
-	ps.logger.Info("Retrieving FullForexQuote ...")
+func (ps *ProcessService) CollectFullForexQuote() error {
 	fullForexQuoteData, err := ps.data.GetFullForexQuote()
 
 	if err != nil {
-		ps.logger.Error(err.Error())
-		return
+		return err
 	}
 
 	reqData := data.FullForexQuoteBulkData{
@@ -57,28 +60,25 @@ func (ps *ProcessService) CollectFullForexQuote() {
 	ioReader, err := data.TransformToReader(&reqData)
 
 	if err != nil {
-		ps.logger.Error(err.Error())
-		return
+		return err
 	}
 
-	if err := db.New().Insert(ps.fullForexQuoteDB, &ioReader, true); err != nil {
-		ps.logger.Error(err.Error())
-		return
+	if err := ps.db.Insert(ps.fullForexQuoteDB, &ioReader, true); err != nil {
+		return err
 	}
 
-	ps.logger.Info("FullForexQuote saved")
+	return nil
+
 }
 
-func (ps *ProcessService) CollectIntraDayForex() {
-	ps.logger.Info("Retrieving IntraDayForex ...")
+func (ps *ProcessService) CollectIntraDayForex() error {
 
 	yesterday := time.Now().Add(-24 * time.Hour).Format("2006-01-02")
 
 	intraDayForex, err := ps.data.GetIntraDayForex(yesterday, yesterday)
 
 	if err != nil {
-		ps.logger.Error(err.Error())
-		return
+		return err
 	}
 
 	reqData := data.IntraDayForexBulkData{
@@ -88,14 +88,13 @@ func (ps *ProcessService) CollectIntraDayForex() {
 	ioReader, err := data.TransformToReader(&reqData)
 
 	if err != nil {
-		ps.logger.Error(err.Error())
-		return
+		return err
 	}
 
-	if err := db.New().Insert(ps.intraDayForexDB, &ioReader, true); err != nil {
-		ps.logger.Error(err.Error())
-		return
+	if err := ps.db.Insert(ps.intraDayForexDB, &ioReader, true); err != nil {
+		return err
 	}
 
-	ps.logger.Info("IntraDayForex saved")
+	return nil
+
 }

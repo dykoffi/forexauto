@@ -5,12 +5,14 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/dykoffi/forexauto/src/config"
 )
 
 type LoggerInterface interface {
+	New(config *config.ConfigService) *LoggerService
 	writeInFile(message string, level string)
 	Fatal(message string)
 	Error(message string)
@@ -24,26 +26,25 @@ type LoggerService struct {
 	folder string
 }
 
-var iLoggerService LoggerService
+var (
+	iLoggerService LoggerService
+	once           sync.Once
+)
 
-func New() *LoggerService {
+func New(config *config.ConfigService) *LoggerService {
 
-	if (iLoggerService != LoggerService{}) {
-		return &iLoggerService
-	}
+	once.Do(func() {
+		level, exist := Levels[config.GetOrDefault("LOG_LEVEL", "Debug")]
 
-	config := config.New()
+		if !exist {
+			level = DEBUG
+		}
 
-	level, exist := Levels[config.GetOrDefault("LOG_LEVEL", "Debug")]
-
-	if !exist {
-		level = DEBUG
-	}
-
-	iLoggerService = LoggerService{
-		level:  level,
-		folder: config.GetOrDefault("LOG_FOLDER", "logs"),
-	}
+		iLoggerService = LoggerService{
+			level:  level,
+			folder: config.GetOrDefault("LOG_FOLDER", "logs"),
+		}
+	})
 
 	return &iLoggerService
 

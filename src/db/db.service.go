@@ -4,39 +4,37 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	"github.com/dykoffi/forexauto/src/config"
-	"github.com/dykoffi/forexauto/src/logger"
 )
 
 type DBInterface interface {
 	New() *DBService
+	Insert(database string, dataReader *io.Reader, bulk bool) error
 }
 
 type DBService struct {
 	host     string
 	username string
 	password string
-	logger   *logger.LoggerService
 	client   *http.Client
 }
 
-var iDBService DBService
+var (
+	iDBService DBService
+	once       sync.Once
+)
 
-func New() *DBService {
-	if (iDBService != DBService{}) {
-		return &iDBService
-	}
-
-	config := config.New()
-
-	iDBService = DBService{
-		host:     config.GetOrThrow("COUCHDB_HOST"),
-		username: config.GetOrThrow("COUCHDB_USER"),
-		password: config.GetOrThrow("COUCHDB_PWD"),
-		logger:   logger.New(),
-		client:   &http.Client{},
-	}
+func New(config *config.ConfigService) *DBService {
+	once.Do(func() {
+		iDBService = DBService{
+			host:     config.GetOrThrow("COUCHDB_HOST"),
+			username: config.GetOrThrow("COUCHDB_USER"),
+			password: config.GetOrThrow("COUCHDB_PWD"),
+			client:   &http.Client{},
+		}
+	})
 
 	return &iDBService
 
