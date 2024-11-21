@@ -12,30 +12,28 @@ import (
 	lop "github.com/samber/lo/parallel"
 )
 
-type DataInterface interface {
-	New() *DataService
+type Interface interface {
 	GetFullForexQuote() (*[]FullForexQuote, error)
-	GetIntraDayForex() (*[]IntraDayForex, error)
+	GetIntraDayForex(from string, to string) (*[]IntraDayForex, error)
 	GetHistoricalDailyForex() (*[]HistoricalForex, error)
 }
 
-type DataService struct {
+type Service struct {
 	host      string
 	apiKey    string
 	symbol    string
 	timeframe string
-	config    *config.ConfigService
 }
 
 var (
-	iDataService DataService
+	iDataService Service
 	once         sync.Once
 )
 
-func New(config *config.ConfigService) *DataService {
+func New(config config.Interface) *Service {
 
 	once.Do(func() {
-		iDataService = DataService{
+		iDataService = Service{
 			apiKey:    config.GetOrThrow("FOREX_API_KEY"),
 			host:      config.GetOrThrow("FOREX_BASE_URL"),
 			symbol:    config.GetOrThrow("FOREX_SYMBOL"),
@@ -46,7 +44,7 @@ func New(config *config.ConfigService) *DataService {
 	return &iDataService
 }
 
-func (ds *DataService) GetFullForexQuote() (*[]FullForexQuote, error) {
+func (ds *Service) GetFullForexQuote() (*[]FullForexQuote, error) {
 
 	path := fmt.Sprintf("/quote/%s", ds.symbol)
 	finalUrl := fmt.Sprintf("%s/%s?apikey=%s", ds.host, path, ds.apiKey)
@@ -78,7 +76,7 @@ func (ds *DataService) GetFullForexQuote() (*[]FullForexQuote, error) {
 	return &fullForexQuoteData, nil
 }
 
-func (ds *DataService) GetIntraDayForex(from string, to string) (*[]IntraDayForex, error) {
+func (ds *Service) GetIntraDayForex(from string, to string) (*[]IntraDayForex, error) {
 	path := fmt.Sprintf("/historical-chart/%s/%s", ds.timeframe, ds.symbol)
 	finalUrl := fmt.Sprintf("%s/%s?from=%s&to=%s&apikey=%s", ds.host, path, from, to, ds.apiKey)
 	res, err := http.Get(finalUrl)
@@ -110,7 +108,7 @@ func (ds *DataService) GetIntraDayForex(from string, to string) (*[]IntraDayFore
 	return &intraDayForexData, nil
 }
 
-func (ds *DataService) GetHistoricalDailyForex() (*[]HistoricalForex, error) {
+func (ds *Service) GetHistoricalDailyForex() (*[]HistoricalForex, error) {
 
 	path := fmt.Sprintf("/historical-price-full/%s", ds.symbol)
 	finalUrl := fmt.Sprintf("%s/%s?apikey=%s", ds.host, path, ds.apiKey)

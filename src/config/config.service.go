@@ -6,27 +6,26 @@ import (
 	"github.com/spf13/viper"
 )
 
-type ConfigInterface interface {
-	New() *ConfigService
+type Interface interface {
 	Get(key string) string
-	GetorThrow(key string) string
+	GetOrThrow(key string) string
 	GetOrDefault(key string, defaultValue string) string
 }
 
-type ConfigService struct {
+type Service struct {
 	config *viper.Viper
 }
 
 // The unique instance for ConfigService (Singleton pattern)
 var (
-	iConfigService ConfigService
+	iConfigService Service
 	once           sync.Once
 )
 
-func New() *ConfigService {
+func New() *Service {
 
 	once.Do(func() {
-		iConfigService = ConfigService{
+		iConfigService = Service{
 			config: viper.New(),
 		}
 
@@ -39,7 +38,7 @@ func New() *ConfigService {
 
 }
 
-func (cs *ConfigService) Get(key string) string {
+func (cs *Service) Get(key string) string {
 	if value := cs.config.Get(key); value != nil {
 		return value.(string)
 	} else {
@@ -47,7 +46,7 @@ func (cs *ConfigService) Get(key string) string {
 	}
 }
 
-func (cs *ConfigService) GetOrThrow(key string) string {
+func (cs *Service) GetOrThrow(key string) string {
 	if value := cs.config.Get(key); value != nil {
 		return value.(string)
 	} else {
@@ -55,7 +54,7 @@ func (cs *ConfigService) GetOrThrow(key string) string {
 	}
 }
 
-func (cs *ConfigService) GetOrDefault(key string, defaultValue string) string {
+func (cs *Service) GetOrDefault(key string, defaultValue string) string {
 	if value := cs.config.Get(key); value != nil {
 		return value.(string)
 	} else {

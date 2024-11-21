@@ -9,26 +9,25 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-type SchedulerInterface interface {
-	New() *ScheduleService
+type Interface interface {
 	RunCrons()
 }
 
-type ScheduleService struct {
+type Service struct {
 	cron    *cron.Cron
-	logger  *logger.LoggerService
-	process *process.ProcessService
+	logger  logger.Interface
+	process process.Interface
 }
 
 var (
-	iScheduleService ScheduleService
+	iScheduleService Service
 	once             sync.Once
 )
 
-func New(cron *cron.Cron, logger *logger.LoggerService, process *process.ProcessService) *ScheduleService {
+func New(cron *cron.Cron, logger logger.Interface, process process.Interface) *Service {
 
 	once.Do(func() {
-		iScheduleService = ScheduleService{
+		iScheduleService = Service{
 			cron:    cron,
 			logger:  logger,
 			process: process,
@@ -38,10 +37,10 @@ func New(cron *cron.Cron, logger *logger.LoggerService, process *process.Process
 	return &iScheduleService
 }
 
-func (ss *ScheduleService) RunCrons() error {
+func (ss *Service) RunCrons() error {
 	ss.logger.Info("Running crons ...")
 	// fmt.Println(ss.cron)
-	_, err := ss.cron.AddFunc("04 15 * * 1-6", func() {
+	_, err := ss.cron.AddFunc("09 18 * * 1-6", func() {
 		fmt.Println("test")
 		if err := ss.process.CollectIntraDayForex(); err != nil {
 			ss.logger.Error(err.Error())
