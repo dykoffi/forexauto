@@ -1,12 +1,17 @@
 package cache
 
 import (
-	"context"
+	"sync"
 	"time"
 
 	"github.com/dykoffi/forexauto/src/config"
 	"github.com/go-redis/redis"
 )
+
+type CacheInterface interface {
+	Set(key string, value interface{})
+	Get(key string) (interface{}, bool)
+}
 
 type CacheService struct {
 	cs  *redis.Client
@@ -14,36 +19,34 @@ type CacheService struct {
 }
 
 // The unique instance for CacheService (Singleton pattern)
-var iCacheService CacheService
+var (
+	iCacheService CacheService
+	once          sync.Once
+)
 
-func New() *CacheService {
+func New(config config.ConfigInterface) *CacheService {
 
-	if (iCacheService != CacheService{}) {
-		return &iCacheService
-	}
+	once.Do(func() {
+		client := redis.NewClient(&redis.Options{
+			Addr: config.GetOrThrow("REDIS_ADDR"),
+		})
 
-	config := config.New()
-
-	client := redis.NewClient(&redis.Options{
-		Addr: config.GetOrThrow("REDIS_ADDR"),
+		err := client.Ping().Err()
+		if err != nil {
+			panic(err)
+		}
+		iCacheService = CacheService{cs: client}
 	})
-
-	err := client.Ping().Err()
-	if err != nil {
-		panic(err)
-	}
-
-	iCacheService = CacheService{cs: client}
 
 	return &iCacheService
 
 }
 
-func (c *CacheService) Set(ctx context.Context, key string, value interface{}) {
+func (c *CacheService) Set(key string, value interface{}) {
 	c.cs.Set(key, value, c.ttl)
 }
 
-func (c *CacheService) Get(ctx context.Context, key string) (interface{}, bool) {
+func (c *CacheService) Get(key string) (interface{}, bool) {
 	s, err := c.cs.Get(key).Result()
 	if err != nil {
 		return struct{}{}, false

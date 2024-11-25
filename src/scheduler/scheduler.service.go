@@ -10,24 +10,24 @@ import (
 )
 
 type Interface interface {
-	RunCrons()
+	RunCrons(cronExpr string) error
 }
 
-type Service struct {
+type SchedulerService struct {
 	cron    *cron.Cron
-	logger  logger.Interface
-	process process.Interface
+	logger  logger.LoggerInterface
+	process process.ProcessInterface
 }
 
 var (
-	iScheduleService Service
+	iScheduleService SchedulerService
 	once             sync.Once
 )
 
-func New(cron *cron.Cron, logger logger.Interface, process process.Interface) *Service {
+func New(cron *cron.Cron, logger logger.LoggerInterface, process process.ProcessInterface) *SchedulerService {
 
 	once.Do(func() {
-		iScheduleService = Service{
+		iScheduleService = SchedulerService{
 			cron:    cron,
 			logger:  logger,
 			process: process,
@@ -37,10 +37,10 @@ func New(cron *cron.Cron, logger logger.Interface, process process.Interface) *S
 	return &iScheduleService
 }
 
-func (ss *Service) RunCrons() error {
+func (ss *SchedulerService) RunCrons(cronExpr string) error {
 	ss.logger.Info("Running crons ...")
 	// fmt.Println(ss.cron)
-	_, err := ss.cron.AddFunc("09 18 * * 1-6", func() {
+	_, err := ss.cron.AddFunc(cronExpr, func() {
 		fmt.Println("test")
 		if err := ss.process.CollectIntraDayForex(); err != nil {
 			ss.logger.Error(err.Error())

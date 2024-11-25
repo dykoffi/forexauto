@@ -9,7 +9,7 @@ import (
 	"github.com/dykoffi/forexauto/src/config"
 )
 
-type Interface interface {
+type DBInterface interface {
 	Insert(database string, dataReader *io.Reader, bulk bool) error
 }
 
@@ -25,7 +25,7 @@ var (
 	once       sync.Once
 )
 
-func New(config *config.Service) *DBService {
+func New(config *config.ConfigService) *DBService {
 	once.Do(func() {
 		iDBService = DBService{
 			host:     config.GetOrThrow("COUCHDB_HOST"),

@@ -12,13 +12,13 @@ import (
 	lop "github.com/samber/lo/parallel"
 )
 
-type Interface interface {
+type DataInterface interface {
 	GetFullForexQuote() (*[]FullForexQuote, error)
 	GetIntraDayForex(from string, to string) (*[]IntraDayForex, error)
 	GetHistoricalDailyForex() (*[]HistoricalForex, error)
 }
 
-type Service struct {
+type DataService struct {
 	host      string
 	apiKey    string
 	symbol    string
@@ -26,14 +26,14 @@ type Service struct {
 }
 
 var (
-	iDataService Service
+	iDataService DataService
 	once         sync.Once
 )
 
-func New(config config.Interface) *Service {
+func New(config config.ConfigInterface) *DataService {
 
 	once.Do(func() {
-		iDataService = Service{
+		iDataService = DataService{
 			apiKey:    config.GetOrThrow("FOREX_API_KEY"),
 			host:      config.GetOrThrow("FOREX_BASE_URL"),
 			symbol:    config.GetOrThrow("FOREX_SYMBOL"),
@@ -44,7 +44,7 @@ func New(config config.Interface) *Service {
 	return &iDataService
 }
 
-func (ds *Service) GetFullForexQuote() (*[]FullForexQuote, error) {
+func (ds *DataService) GetFullForexQuote() (*[]FullForexQuote, error) {
 
 	path := fmt.Sprintf("/quote/%s", ds.symbol)
 	finalUrl := fmt.Sprintf("%s/%s?apikey=%s", ds.host, path, ds.apiKey)
@@ -76,7 +76,7 @@ func (ds *Service) GetFullForexQuote() (*[]FullForexQuote, error) {
 	return &fullForexQuoteData, nil
 }
 
-func (ds *Service) GetIntraDayForex(from string, to string) (*[]IntraDayForex, error) {
+func (ds *DataService) GetIntraDayForex(from string, to string) (*[]IntraDayForex, error) {
 	path := fmt.Sprintf("/historical-chart/%s/%s", ds.timeframe, ds.symbol)
 	finalUrl := fmt.Sprintf("%s/%s?from=%s&to=%s&apikey=%s", ds.host, path, from, to, ds.apiKey)
 	res, err := http.Get(finalUrl)
@@ -108,7 +108,7 @@ func (ds *Service) GetIntraDayForex(from string, to string) (*[]IntraDayForex, e
 	return &intraDayForexData, nil
 }
 
-func (ds *Service) GetHistoricalDailyForex() (*[]HistoricalForex, error) {
+func (ds *DataService) GetHistoricalDailyForex() (*[]HistoricalForex, error) {
 
 	path := fmt.Sprintf("/historical-price-full/%s", ds.symbol)
 	finalUrl := fmt.Sprintf("%s/%s?apikey=%s", ds.host, path, ds.apiKey)

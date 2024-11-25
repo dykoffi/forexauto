@@ -11,7 +11,7 @@ import (
 	"github.com/dykoffi/forexauto/src/config"
 )
 
-type Interface interface {
+type LoggerInterface interface {
 	writeInFile(message string, level string)
 	Fatal(message string)
 	Error(message string)
@@ -20,17 +20,17 @@ type Interface interface {
 	Debug(message string)
 }
 
-type Service struct {
+type LoggerService struct {
 	level  int
 	folder string
 }
 
 var (
-	iLoggerService Service
+	iLoggerService LoggerService
 	once           sync.Once
 )
 
-func New(config config.Interface) *Service {
+func New(config config.ConfigInterface) *LoggerService {
 
 	once.Do(func() {
 		level, exist := Levels[config.GetOrDefault("LOG_LEVEL", "Debug")]
@@ -39,7 +39,7 @@ func New(config config.Interface) *Service {
 			level = DEBUG
 		}
 
-		iLoggerService = Service{
+		iLoggerService = LoggerService{
 			level:  level,
 			folder: config.GetOrDefault("LOG_FOLDER", "logs"),
 		}
@@ -49,7 +49,7 @@ func New(config config.Interface) *Service {
 
 }
 
-func (ls *Service) writeInFile(message string, level string) {
+func (ls *LoggerService) writeInFile(message string, level string) {
 
 	if levelVal, exist := Levels[level]; !exist || levelVal > ls.level {
 		return
@@ -83,22 +83,22 @@ func (ls *Service) writeInFile(message string, level string) {
 
 }
 
-func (ls *Service) Fatal(message string) {
+func (ls *LoggerService) Fatal(message string) {
 	ls.writeInFile(message, "Fatal")
 }
 
-func (ls *Service) Error(message string) {
+func (ls *LoggerService) Error(message string) {
 	ls.writeInFile(message, "Error")
 }
 
-func (ls *Service) Warning(message string) {
+func (ls *LoggerService) Warning(message string) {
 	ls.writeInFile(message, "Warn")
 }
 
-func (ls *Service) Info(message string) {
+func (ls *LoggerService) Info(message string) {
 	ls.writeInFile(message, "Info")
 }
 
-func (ls *Service) Debug(message string) {
+func (ls *LoggerService) Debug(message string) {
 	ls.writeInFile(message, "Debug")
 }

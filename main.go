@@ -18,7 +18,7 @@ func main() {
 	loggerService := logger.New(configService)
 	processService := process.New(configService, dataService, dbService)
 
-	if err := scheduler.New(cronService, loggerService, processService).RunCrons(); err != nil {
+	if err := scheduler.New(cronService, loggerService, processService).RunCrons("02 09 * * *"); err != nil {
 		loggerService.Error(err.Error())
 	}
 

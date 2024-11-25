@@ -10,6 +10,7 @@ import (
 )
 
 type ChatInterface interface {
+	SendMessage() error
 }
 
 type ChatService struct {

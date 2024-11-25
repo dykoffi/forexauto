@@ -9,29 +9,29 @@ import (
 	"github.com/dykoffi/forexauto/src/db"
 )
 
-type Interface interface {
+type ProcessInterface interface {
 	CollectFullForexQuote() error
 	CollectIntraDayForex() error
 	CollectHistoricalForex() error
 }
 
-type Service struct {
+type ProcessService struct {
 	fullForexQuoteDB  string
 	intraDayForexDB   string
 	historicalForexDB string
-	config            config.Interface
-	data              data.Interface
-	db                db.Interface
+	config            config.ConfigInterface
+	data              data.DataInterface
+	db                db.DBInterface
 }
 
 var (
-	iProcessService Service
+	iProcessService ProcessService
 	once            sync.Once
 )
 
-func New(config config.Interface, data data.Interface, db db.Interface) *Service {
+func New(config config.ConfigInterface, data data.DataInterface, db db.DBInterface) *ProcessService {
 	once.Do(func() {
-		iProcessService = Service{
+		iProcessService = ProcessService{
 			data:              data,
 			db:                db,
 			config:            config,
@@ -45,7 +45,7 @@ func New(config config.Interface, data data.Interface, db db.Interface) *Service
 
 }
 
-func (ps *Service) CollectFullForexQuote() error {
+func (ps *ProcessService) CollectFullForexQuote() error {
 	fullForexQuoteData, err := ps.data.GetFullForexQuote()
 
 	if err != nil {
@@ -70,7 +70,7 @@ func (ps *Service) CollectFullForexQuote() error {
 
 }
 
-func (ps *Service) CollectIntraDayForex() error {
+func (ps *ProcessService) CollectIntraDayForex() error {
 
 	yesterday := time.Now().Add(-24 * time.Hour).Format("2006-01-02")
 
@@ -98,6 +98,6 @@ func (ps *Service) CollectIntraDayForex() error {
 
 }
 
-func (ps *Service) CollectHistoricalForex() error {
+func (ps *ProcessService) CollectHistoricalForex() error {
 	return nil
 }
