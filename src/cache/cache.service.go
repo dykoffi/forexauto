@@ -9,8 +9,8 @@ import (
 )
 
 type CacheInterface interface {
-	Set(key string, value interface{})
-	Get(key string) (interface{}, bool)
+	Set(key string, value any)
+	Get(key string) (any, bool)
 }
 
 type CacheService struct {
@@ -42,11 +42,11 @@ func New(config config.ConfigInterface) *CacheService {
 
 }
 
-func (c *CacheService) Set(key string, value interface{}) {
+func (c *CacheService) Set(key string, value any) {
 	c.cs.Set(key, value, c.ttl)
 }
 
-func (c *CacheService) Get(key string) (interface{}, bool) {
+func (c *CacheService) Get(key string) (any, bool) {
 	s, err := c.cs.Get(key).Result()
 	if err != nil {
 		return struct{}{}, false

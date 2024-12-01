@@ -4,7 +4,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dykoffi/forexauto/src/config"
 	"github.com/dykoffi/forexauto/src/data"
 	"github.com/dykoffi/forexauto/src/db"
 )
@@ -19,7 +18,6 @@ type ProcessService struct {
 	fullForexQuoteDB  string
 	intraDayForexDB   string
 	historicalForexDB string
-	config            config.ConfigInterface
 	data              data.DataInterface
 	db                db.DBInterface
 }
@@ -29,12 +27,11 @@ var (
 	once            sync.Once
 )
 
-func New(config config.ConfigInterface, data data.DataInterface, db db.DBInterface) *ProcessService {
+func New(data data.DataInterface, db db.DBInterface) *ProcessService {
 	once.Do(func() {
 		iProcessService = ProcessService{
 			data:              data,
 			db:                db,
-			config:            config,
 			fullForexQuoteDB:  "fullforexquote",
 			intraDayForexDB:   "intradayforex",
 			historicalForexDB: "historicalforex",
