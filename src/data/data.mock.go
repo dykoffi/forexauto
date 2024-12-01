@@ -15,7 +15,7 @@ func (m *MockDataService) GetFullForexQuote() (*[]FullForexQuote, error) {
 }
 
 func (m *MockDataService) GetIntraDayForex(from string, to string) (*[]IntraDayForex, error) {
-	args := m.Called()
+	args := m.Called(from, to)
 	if args.Get(0) != nil {
 		return args.Get(0).(*[]IntraDayForex), args.Error(1)
 	}
